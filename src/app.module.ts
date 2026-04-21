@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 // 1. 引入 TypeORM 模块
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
+import { JwtModule } from '@nestjs/jwt'; // 引入 JwtModule
 
 @Module({
   imports: [
@@ -19,6 +20,10 @@ import { UsersModule } from './users/users.module';
       entities: [],                   // 这里以后会放你的实体类（表结构）
       synchronize: true,              // 开发环境设为 true，自动同步表结构（生产环境务必设为 false）
       autoLoadEntities: true,
+    }),
+    JwtModule.register({
+      secret: 'my_secret_key_change_this_in_production', // 生产环境请放在 .env 中
+      signOptions: { expiresIn: '24h' }, // Token 有效期 24 小时
     }),
     UsersModule,
   ],

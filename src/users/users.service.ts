@@ -1,17 +1,18 @@
-// src/users/users.service.ts
-import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcryptjs';
-import { CryptoUtil } from '../common/utils/crypto.util'; // 引入工具类
+import { JwtService } from '@nestjs/jwt'; // 引入 JwtService
+import * as bcrypt from 'bcrypt'; // 引入 bcrypt 用于比对
+import { CryptoUtil } from '../common/utils/crypto.util'; // 引入之前的解密工具
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -45,5 +46,32 @@ export class UsersService {
     });
 
     return await this.usersRepository.save(user);
+  }
+
+  async login(username: string, rawPassword: string) {
+    const user = await this.usersRepository.findOne({
+      where: { username: username },
+    });
+    if (!user) {
+      throw new UnauthorizedException('用户名或密码错误');
+    }
+
+    const isPasswordValid = await bcrypt.compare(rawPassword, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('用户名或密码错误');
+    }
+
+    const payload = { sub: user.id, username: user.username }; // payload 是放入 token 的信息
+    const token = this.jwtService.sign(payload);
+
+    return {
+      access_token: token,
+      user: {
+        id: user.id,
+        username: user.username,
+        nickname: user.nickname,
+      }
+    };
   }
 }
