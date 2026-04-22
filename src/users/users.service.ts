@@ -1,11 +1,15 @@
+// src/users/users.service.ts
 import { Injectable, ConflictException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { JwtService } from '@nestjs/jwt'; // 引入 JwtService
-import * as bcrypt from 'bcrypt'; // 引入 bcrypt 用于比对
-import { CryptoUtil } from '../common/utils/crypto.util'; // 引入之前的解密工具
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { CryptoUtil } from '../common/utils/crypto.util';
+
+// 假设你有一个 LoginDto，包含 username 和 password
+// import { LoginDto } from './dto/login.dto'; 
 
 @Injectable()
 export class UsersService {
@@ -16,7 +20,6 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    // 1. 检查用户名是否存在
     const existingUser = await this.usersRepository.findOne({
       where: { username: createUserDto.username },
     });
@@ -25,44 +28,52 @@ export class UsersService {
     }
 
     let plainPassword: string;
-
-    // 2. 【关键】AES 解密传输的密码
     try {
-      // 假设前端传来的 password 字段已经是 AES 加密后的字符串
+      // 解密注册密码
       plainPassword = CryptoUtil.decrypt(createUserDto.password);
     } catch (error) {
       throw new BadRequestException('密码格式错误或解密失败');
     }
 
-    // 3. 【关键】Bcrypt 哈希存储
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(plainPassword, salt);
 
-    // 4. 创建并保存
     const user = this.usersRepository.create({
       username: createUserDto.username,
       nickname: createUserDto.nickname,
-      password: hashedPassword, // 存双重处理后的密码
+      password: hashedPassword,
     });
 
     return await this.usersRepository.save(user);
   }
 
-  async login(username: string, rawPassword: string) {
+  // 修改 login 签名以接收 DTO 或明确参数来源
+  async login(username: string, encryptedPassword: string) {
     const user = await this.usersRepository.findOne({
       where: { username: username },
     });
+
     if (!user) {
+      // 安全提示：不要提示“用户不存在”，统一提示“用户名或密码错误”
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    const isPasswordValid = await bcrypt.compare(rawPassword, user.password);
+    let plainPassword: string;
+    try {
+      // 【关键修改】解密登录密码
+      plainPassword = CryptoUtil.decrypt(encryptedPassword);
+    } catch (error) {
+      throw new UnauthorizedException('用户名或密码错误');
+    }
+
+    // 使用解密后的明文密码与数据库中的 Hash 比对
+    const isPasswordValid = await bcrypt.compare(plainPassword, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    const payload = { sub: user.id, username: user.username }; // payload 是放入 token 的信息
+    const payload = { sub: user.id, username: user.username };
     const token = this.jwtService.sign(payload);
 
     return {
