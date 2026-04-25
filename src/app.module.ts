@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from '@nestjs/jwt'; // 引入 JwtModule
+import { ArticleModule } from './article/article.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { JwtModule } from '@nestjs/jwt'; // 引入 JwtModule
       signOptions: { expiresIn: '24h' },
     }),
     UsersModule,
+    ArticleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
