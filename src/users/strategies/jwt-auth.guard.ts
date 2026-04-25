@@ -15,18 +15,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    // 4. 打印日志调试（可选，方便你看它到底有没有读到标记）
-    // console.log('--- 守卫触发 ---');
-
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    // 👇 加上这行日志，重启服务后再请求一次登录接口
-    console.log('🔍 是否公开接口:', isPublic); 
-    // 5. 如果读到是 Public，打印一下并放行
     if (isPublic) {
-      // console.log('放行公开接口');
       return true;
     }
 

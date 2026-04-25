@@ -21,9 +21,9 @@ import { JwtModule } from '@nestjs/jwt'; // 引入 JwtModule
       synchronize: true,              // 开发环境设为 true，自动同步表结构（生产环境务必设为 false）
       autoLoadEntities: true,
     }),
-    // ✅ JWT 全局配置 - 必须提供 secret
+    // ✅ JWT 全局配置 - 使用环境变量
     JwtModule.register({
-      secret: 'my_secret_key_change_this_in_production', // ⚠️ 生产环境请使用环境变量 process.env.JWT_SECRET
+      secret: process.env.JWT_SECRET || 'my_secret_key_change_this_in_production',
       signOptions: { expiresIn: '24h' },
     }),
     UsersModule,
