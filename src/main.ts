@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { JwtAuthGuard } from './users/strategies/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
@@ -14,6 +15,9 @@ async function bootstrap() {
 
   // 注册全局拦截器，统一响应格式
   app.useGlobalInterceptors(new TransformInterceptor());
+
+  // 注册全局异常过滤器，统一错误响应格式
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // 注册全局守卫
   app.useGlobalGuards(new JwtAuthGuard(app.get(Reflector)));
