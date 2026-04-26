@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Article } from './entities/article.entity';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
@@ -10,7 +10,7 @@ export class ArticleService {
   constructor(
     @InjectRepository(Article)
     private readonly articleRepository: Repository<Article>,
-  ) {}
+  ) { }
 
   async create(createArticleDto: CreateArticleDto): Promise<Article> {
     const article = this.articleRepository.create(createArticleDto);
@@ -18,15 +18,25 @@ export class ArticleService {
   }
 
   async findAll(query?: any): Promise<{ data: Article[]; total: number }> {
-    const { page = 1, limit = 10, category } = query || {};
-    const skip = (page - 1) * limit;
+    const { page = 1, pageSize = 10, category, title } = query || {};
+    const skip = (page - 1) * pageSize;
 
-    const where = category ? { category } : {};
+    const where: any = {};
+
+    // 添加分类筛选
+    if (category) {
+      where.category = category;
+    }
+
+    // 添加标题模糊搜索
+    if (title) {
+      where.title = Like(`%${title}%`);
+    }
 
     const [data, total] = await this.articleRepository.findAndCount({
       where,
       skip,
-      take: limit,
+      take: pageSize,
       order: { createdAt: 'DESC' },
     });
 
