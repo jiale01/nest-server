@@ -25,14 +25,14 @@ export class CryptoUtil {
       throw new Error('密码解密失败');
     }
   }
-  
+
   // 可选：用于测试
   static encrypt(text: string): string {
-      const key = Buffer.from(AES_KEY, 'utf-8');
-      const iv = Buffer.from(AES_IV, 'utf-8');
-      const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-      let encrypted = cipher.update(text, 'utf-8', 'base64');
-      encrypted += cipher.final('base64');
-      return encrypted;
+    const key = Buffer.from(AES_KEY, 'utf-8');
+    const iv = Buffer.from(AES_IV, 'utf-8');
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encrypted = cipher.update(text, 'utf-8', 'base64');
+    encrypted += cipher.final('base64');
+    return encrypted;
   }
 }

@@ -7,25 +7,43 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from '@nestjs/jwt'; // 引入 JwtModule
 import { ArticleModule } from './article/article.module';
+// 引入 ConfigModule
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    // 2. 配置数据库连接
-    TypeOrmModule.forRoot({
-      type: 'mysql',                  // 数据库类型
-      host: 'localhost',              // 你的 Docker 映射地址
-      port: 3306,                     // 端口
-      username: 'root',               // 用户名
-      password: 'root',               // 密码
-      database: 'my_nest_db',         // 刚才创建的数据库名
-      entities: [],                   // 这里以后会放你的实体类（表结构）
-      synchronize: true,              // 开发环境设为 true，自动同步表结构（生产环境务必设为 false）
-      autoLoadEntities: true,
+    // 配置环境变量模块 - 全局可用
+    ConfigModule.forRoot({
+      isGlobal: true, // 设置为全局模块，其他模块无需导入即可使用
+      envFilePath: '.env', // 指定环境变量文件
+    }),
+    // 2. 配置数据库连接 - 使用环境变量
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST') || 'localhost',
+        port: configService.get<number>('DB_PORT') || 3306,
+        username: configService.get<string>('DB_USERNAME') || 'root',
+        password: configService.get<string>('DB_PASSWORD') || 'root',
+        database: configService.get<string>('DB_DATABASE') || 'my_nest_db',
+        entities: [],
+        synchronize: configService.get<string>('NODE_ENV') !== 'production', // 生产环境关闭自动同步
+        autoLoadEntities: true,
+      }),
+      inject: [ConfigService],
     }),
     // ✅ JWT 全局配置 - 使用环境变量
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'my_secret_key_change_this_in_production',
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'my_secret_key_change_this_in_production',
+        signOptions: { 
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
+      }) as any,
+      inject: [ConfigService],
+      global: true, // 设置为全局模块
     }),
     UsersModule,
     ArticleModule,

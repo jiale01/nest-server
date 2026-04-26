@@ -3,9 +3,11 @@ import { AppModule } from './app.module';
 import { JwtAuthGuard } from './users/strategies/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   // 设置全局API前缀
   app.setGlobalPrefix('api_v1');
@@ -16,6 +18,10 @@ async function bootstrap() {
   // 注册全局守卫
   app.useGlobalGuards(new JwtAuthGuard(app.get(Reflector)));
 
-  await app.listen(3000);
+  // 从环境变量读取端口，默认3000
+  const port = configService.get<number>('PORT') || 3000;
+  await app.listen(port);
+  
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap();
