@@ -28,7 +28,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         password: configService.get<string>('DB_PASSWORD') || 'root',
         database: configService.get<string>('DB_DATABASE') || 'my_nest_db',
         entities: [],
-        synchronize: configService.get<string>('NODE_ENV') !== 'production', // 生产环境关闭自动同步
+        synchronize: true,
+        // synchronize: configService.get<string>('NODE_ENV') !== 'production', // 生产环境关闭自动同步
         autoLoadEntities: true,
       }),
       inject: [ConfigService],

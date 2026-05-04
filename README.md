@@ -34,7 +34,7 @@ $ npm install
 
 ## Running the app
 
-```bash
+```
 # development
 $ npm run start
 
@@ -71,3 +71,59 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+```
+# NestJS Server
+
+## 环境配置说明
+
+本项目支持两种运行环境，使用不同的配置文件：
+
+### 1. 本地开发环境（直接运行）
+
+**配置文件**: `.env`
+
+```bash
+DB_HOST=localhost  # 连接本地 MySQL
+```
+
+**启动方式**:
+```bash
+npm run start:dev
+```
+
+**前提条件**:
+- 本地已安装并运行 MySQL 服务
+- 或者通过 Docker 单独启动 MySQL：`docker-compose up -d mysql`
+
+### 2. Docker Compose 环境（容器化部署）
+
+**配置文件**: `.env.docker`
+
+```bash
+DB_HOST=mysql  # Docker 网络中的服务名
+```
+
+**启动方式**:
+```bash
+docker-compose up --build
+```
+
+**特点**:
+- 应用和数据库都在 Docker 容器中运行
+- 通过 Docker 网络自动连接，无需手动配置
+
+## 配置文件说明
+
+| 文件 | 用途 | DB_HOST | 使用场景 |
+|------|------|---------|----------|
+| `.env` | 本地开发 | `localhost` | `npm run start:dev` |
+| `.env.docker` | Docker 部署 | `mysql` | `docker-compose up` |
+| `.env.example` | 配置模板 | `localhost` | 参考示例 |
+
+## 注意事项
+
+⚠️ **重要**: 
+- 本地运行时不要使用 `DB_HOST=mysql`，会报 `ENOTFOUND` 错误
+- Docker 运行时必须使用 `DB_HOST=mysql`，不能使用 `localhost`
+- `.env` 和 `.env.docker` 文件不会被提交到 Git（已在 `.gitignore` 中）

@@ -6,11 +6,11 @@ services:
     image: mysql:8.0          # 使用 MySQL 8.0 官方镜像
     container_name: nestjs-mysql
     restart: always           # 容器崩溃自动重启
+    env_file:
+      - .env.docker           # 使用 Docker 专用环境配置
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD} # 从 .env 读取 root 密码
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD} # 从 .env.docker 读取 root 密码
       MYSQL_DATABASE: ${DB_DATABASE}               # 自动创建数据库
-      MYSQL_USER: ${DB_USERNAME}                   # 自动创建普通用户
-      MYSQL_PASSWORD: ${DB_PASSWORD}           # 用户密码
     ports:
       - "3306:3306"           # 映射端口，方便本地客户端连接（生产环境可注释掉）
     volumes:
@@ -30,6 +30,8 @@ services:
     restart: always
     ports:
       - "3000:3000"           # 映射应用端口
+    env_file:
+      - .env.docker           # 使用 Docker 专用环境配置
     environment:
       # 关键：在这里配置数据库连接信息
       # 注意：DB_HOST 必须填写 docker-compose 中定义的服务名 'mysql'，而不是 localhost
