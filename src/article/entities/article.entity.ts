@@ -14,6 +14,9 @@ export class Article {
   @Column({ type: 'text' })
   content: string;
 
+  @Column({ default: 0 })
+  likes: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

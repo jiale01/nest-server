@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from '@nestjs/jwt'; // 引入 JwtModule
 import { ArticleModule } from './article/article.module';
+import { BlogModule } from './blog/blog.module';
 // 引入 ConfigModule
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -48,6 +49,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     UsersModule,
     ArticleModule,
+    BlogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
