@@ -25,7 +25,7 @@ async function bootstrap() {
   // 从环境变量读取端口，默认3000
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);
-  
+
   console.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap();

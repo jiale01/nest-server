@@ -1,19 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CryptoUtil } from '../common/utils/crypto.util';
 import { Public } from './strategies/jwt-auth.guard';
+import { PageQuery } from '../types/page';
+import { JwtAuthGuard } from './strategies/jwt-auth.guard';
+import { Request } from 'express';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
+
   // 注册接口
   @Public()
   @Post('register')
-  // 1. 直接接收前端传来的加密密码，不要在这里解密
   register(@Body() createUserDto: CreateUserDto) {
-    // 2. 直接把整个 DTO 丢给 Service
     return this.usersService.create(createUserDto);
   }
 
@@ -21,26 +23,39 @@ export class UsersController {
   @Public()
   @Post('login')
   async login(@Body() body: { username: string; password: string }) {
-    // return '登录成功，这是纯文本';
     return await this.usersService.login(body.username, body.password);
   }
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne(+id);
-  // }
+  // 获取当前用户信息 - 需要 JWT 认证
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async getProfile(@Req() request: Request) {
+    // request.user 是由 JwtStrategy.validate() 返回的数据
+    const user = request.user as { userId: number; username: string };
+    return this.usersService.getProfile(user.userId);
+  }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
+  // 获取所有用户（分页）- 需要认证
+  @Get()
+  findAll(@Query() query: PageQuery) {
+    return this.usersService.findAll(query);
+  }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.usersService.remove(+id);
-  // }
+  // 获取单个用户 - 需要认证
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(+id);
+  }
+
+  // 更新用户信息 - 需要认证
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
+  }
+
+  // 删除用户 - 需要认证
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
+  }
 }
