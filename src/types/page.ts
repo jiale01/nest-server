@@ -2,6 +2,7 @@
 export interface PageQuery {
   page?: number;      // 当前页码，默认 1
   pageSize?: number;  // 每页数量，默认 10
+  username?: string;  // 用户名关键词搜索（可选，模糊匹配）
 }
 
 // 分页响应数据

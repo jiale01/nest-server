@@ -1,7 +1,7 @@
 // src/users/users.service.ts
 import { Injectable, ConflictException, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -93,7 +93,14 @@ export class UsersService {
     const page = query.page || 1;
     const pageSize = query.pageSize || 10;
 
+    // 构建查询条件
+    const where: any = {};
+    if (query.username) {
+      where.username = Like(`%${query.username}%`);
+    }
+
     const [list, total] = await this.usersRepository.findAndCount({
+      where,
       skip: (page - 1) * pageSize,
       take: pageSize,
       order: { createdAt: 'DESC' },
